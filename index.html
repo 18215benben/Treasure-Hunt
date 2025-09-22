@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Treasure Hunt - First Clue</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css?family=Segoe+UI:400,600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        .clue-container {
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            backdrop-filter: blur(14px) saturate(180%);
+            -webkit-backdrop-filter: blur(14px) saturate(180%);
+            border-radius: 18px;
+            border: 1.5px solid rgba(255, 255, 255, 0.35);
+            padding: 48px 64px;
+            text-align: center;
+            color: #1a202c;
+            max-width: 400px;
+            width: 90%;
+            /* Glass effect enhancements */
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            /* Add subtle inner shadow for depth */
+            box-shadow:
+            0 4px 30px rgba(0, 0, 0, 0.18),
+            inset 0 1.5px 8px rgba(255,255,255,0.25);
+        }
+        .clue-title {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+        }
+        .clue-text {
+            background: rgba(255, 255, 255, 0.45);
+            border-radius: 12px;
+            padding: 20px 28px;
+            box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            font-size: 1.15rem;
+            font-weight: 500;
+            color: #222;
+            margin: 0;
+            letter-spacing: 0.2px;
+        }
+        @media (max-width: 600px) {
+            .clue-container {
+            padding: 28px 10px;
+            }
+            .clue-title {
+            font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="clue-container">
+        <div class="clue-title">First Clue</div>
+        <div class="clue-text">
+            Oww, why do you keep on sitting on me!
+        </div>
+    </div>
+</body>
+</html>
