@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>⭐ Star Catch PyScript Game ⭐</title>
+  
+    <!-- ✅ use the module version -->
+    <script type="module" src="https://pyscript.net/releases/2025.8.1/core.js"></script>
+    <link rel="stylesheet" href="https://pyscript.net/releases/2025.8.1/core.css">
+  
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+        text-align: center;
+        background: #111;
+        color: #fff;
+      }
+      #game {
+        background: #000;
+        border: 3px solid #fff;
+        margin: 1rem auto;
+        display: block;
+      }
+      .stats { margin-top: 10px; }
+      button {
+        margin: 0.25rem;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+    </style>
+  </head>  
+
+<body>
+  <h2>⭐ Star Catch PyScript Game ⭐</h2>
+
+  <canvas id="game" width="400" height="600"></canvas>
+
+  <div class="stats">
+    Score: <span id="score">0</span> |
+    Misses: <span id="misses">0</span> |
+    High Score: <span id="highscore">0</span>
+  </div>
+
+  <div>
+    <button id="startBtn">▶️ Start</button>
+    <button id="pauseBtn">⏸️ Pause</button>
+    <button id="resumeBtn">▶️ Resume</button>
+  </div>
+
+  <script type="py">
+from js import document, window, console
+from pyodide.ffi import create_proxy
+import random, math
+
+def on_ready(event=None):
+    console.log("✅ PyScript ready, initializing game")
+
+    canvas = document.getElementById("game")
+    ctx = canvas.getContext("2d")
+    W, H = canvas.width, canvas.height
+    score_el = document.getElementById("score")
+    misses_el = document.getElementById("misses")
+    highscore_el = document.getElementById("highscore")
+    start_btn = document.getElementById("startBtn")
+    pause_btn = document.getElementById("pauseBtn")
+    resume_btn = document.getElementById("resumeBtn")
+
+    storage = window.localStorage
+    try:
+        high_score = int(storage.getItem("star_highscore") or 0)
+    except:
+        high_score = 0
+    highscore_el.innerText = str(high_score)
+
+    # preload sounds safely
+    try:
+        catch_sound = window.Audio.new("https://actions.google.com/sounds/v1/cartoon/pop.ogg")
+        miss_sound  = window.Audio.new("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg")
+    except Exception as e:
+        console.log("⚠️ Audio failed:", e)
+        catch_sound = None
+        miss_sound = None
+
+    stars = []
+    score = 0
+    misses = 0
+    last_time = None
+    spawn_timer = 0
+    spawn_interval = 1.0
+    paused = False
+
+    def spawn_star():
+        stars.append({
+            "x": random.randint(20, W-20),
+            "y": -10,
+            "r": 10,
+            "speed": random.uniform(100, 250)
+        })
+
+    def start_game(event=None):
+        nonlocal score, misses, stars, spawn_interval, paused, last_time
+        console.log("▶️ Game started")
+        score = 0
+        misses = 0
+        stars = []
+        spawn_interval = 1.0
+        paused = False
+        last_time = None
+        score_el.innerText = "0"
+        misses_el.innerText = "0"
+        loop_proxy = create_proxy(loop)
+        window.requestAnimationFrame(loop_proxy)
+
+    def pause_game(event=None):
+        nonlocal paused
+        paused = True
+        console.log("⏸️ Game paused")
+
+    def resume_game(event=None):
+        nonlocal paused, last_time
+        paused = False
+        last_time = None
+        console.log("▶️ Game resumed")
+        loop_proxy = create_proxy(loop)
+        window.requestAnimationFrame(loop_proxy)
+
+    def on_click(event):
+        nonlocal score, high_score
+        rect = canvas.getBoundingClientRect()
+        x, y = event.clientX - rect.left, event.clientY - rect.top
+        for s in list(stars):
+            if math.hypot(s["x"]-x, s["y"]-y) < s["r"]+5:
+                stars.remove(s)
+                if catch_sound: catch_sound.play()
+                score += 1
+                score_el.innerText = str(score)
+                if score > high_score:
+                    high_score = score
+                    storage.setItem("star_highscore", str(high_score))
+                    highscore_el.innerText = str(high_score)
+                return
+
+    def loop(ts):
+        nonlocal last_time, spawn_timer, spawn_interval, score, misses, paused
+        if paused:
+            return
+        if last_time is None:
+            last_time = ts
+        dt = (ts - last_time) / 1000.0
+        last_time = ts
+
+        ctx.clearRect(0, 0, W, H)
+        spawn_timer += dt
+        if spawn_timer >= spawn_interval:
+            spawn_star()
+            spawn_timer = 0
+            spawn_interval = max(0.35, spawn_interval * 0.985)
+
+        for s in list(stars):
+            s["y"] += s["speed"] * dt
+            ctx.beginPath()
+            ctx.arc(s["x"], s["y"], s["r"], 0, 2*math.pi)
+            ctx.fillStyle = "gold"
+            ctx.fill()
+            if s["y"] > H + 10:
+                stars.remove(s)
+                misses += 1
+                misses_el.innerText = str(misses)
+                if miss_sound: miss_sound.play()
+                if misses >= 5:
+                    ctx.font = "32px sans-serif"
+                    ctx.fillStyle = "red"
+                    ctx.fillText("Game Over", W/2 - 80, H/2)
+                    return
+
+        window.requestAnimationFrame(create_proxy(loop))
+
+    # Attach events safely
+    canvas.onclick = create_proxy(on_click)
+    start_btn.onclick = create_proxy(start_game)
+    pause_btn.onclick = create_proxy(pause_game)
+    resume_btn.onclick = create_proxy(resume_game)
+
+    console.log("✅ Buttons bound successfully")
+
+# Wait for DOM ready
+window.addEventListener("load", create_proxy(on_ready))
+  </script>
+</body>
+</html>
